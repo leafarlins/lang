@@ -9,6 +9,7 @@ langapp = Blueprint('langapp',__name__)
 
 @langapp.route('/', methods=['GET','POST'])
 def home():
+    
     return render_template("home.html",menu="Home")
 
 @langapp.route('/about')
