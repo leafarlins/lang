@@ -9,7 +9,7 @@ user = Blueprint('user',__name__)
 @user.route('/login', methods=['GET','POST'])
 def login():
     if "username" in session:
-        return redirect(url_for('bolao.apostas',ano='22'))
+        return redirect(url_for('langapp.home'))
     elif request.method == 'POST':
         username = request.form.get('usuario')
         password = request.form.get('senha')
