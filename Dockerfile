@@ -3,7 +3,7 @@ FROM fedora:34
 #MAINTAINER Rafael Lins "leafarlins@gmail.com"
 
 RUN dnf update -y && \
-    dnf install -y python3-3.9.13 python-pip && \
+    dnf install -y python3-3.10.7 python-pip && \
     dnf clean all && rm -rf /var/cache/yum
 
 # We copy just the requirements.txt first to leverage Docker cache
