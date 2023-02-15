@@ -1,9 +1,30 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="row scoll-pane"><div class="col-12">
+<div class="container-md">
 <h1 class="text-center m-3">Vocabulary Studying</h1>
 
-</div></div>
+<div class="row justify-content-md-center"><div class="col-12 col-sm-12 col-md-6 col-lg-4">
+    {% with messages = get_flashed_messages(with_categories=true) %} {% if messages %} {% for category, message in messages %}
+    <div class="alert alert-{{ category }} text-center " role="alert">
+        {{ message }}
+    </div>
+{% endfor %} {% endif %} {% endwith %}</div></div>
+
+<form action="{{ url_for('langapp.textstudy') }}" method="post">
+    <div class="row mb-3">
+        <div class="text-center mb-3">
+            <label for="texto" class="form-label">Just paste whatever text bellow to generate a vocabulary list to study.</label>
+        </div>
+        <div class="mb-3 ">
+            <textarea class="form-control" id="texto" name="texto" rows="8"></textarea>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-12 text-center m-3"><button type="submit" class="btn btn-primary">Go!</button></div>
+    </div>
+
+</form></div>
 
 {% endblock %}

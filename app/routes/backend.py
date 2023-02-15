@@ -1,4 +1,4 @@
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 import re
 import string
 from flask import Blueprint, app, render_template, session, request, url_for, flash, jsonify, current_app
@@ -15,8 +15,18 @@ backend = Blueprint('backend',__name__)
 #https://github.com/Suyash458/WiktionaryParser
 #https://github.com/Surkal/WiktionnaireParser
 
+# mongodb of each user
+# {
+# 'word': palavra,
+# 'status': 'known'/'learning'
+# 'flashcard': {
+#   'days': 5,
+#   'mult': 1.5
+#   'date': dateformat
+# }}
+
 @backend.route('/api/<lang>/<word>')
-@cache.memoize(300)
+@cache.memoize(600000)
 def get_word(lang,word):
     if lang == 'en':
         parser = WiktionaryParser()
@@ -57,34 +67,117 @@ def get_word(lang,word):
         'data': data
     }
 
+def wordIsKnown(word,userdb):
+    checkCache = cache.get(word+userdb)
+    if checkCache:
+        return True
+    else:
+        outdb = mongo.db[userdb].find_one({'word': word,'status': 'known'})
+        if outdb:
+            cache.set(word+userdb,True,600000)
+            return True
+        else:
+            return False
+
 @backend.route('/api/text/<lang>/<text>')
 @cache.memoize(300)
-def get_text(lang,text):
+def get_text(lang,text,userid=""):
     wordset = []
     wordsnot = []
     wordstotal = []
     wordsknown = []
-    words_in_dict = 0
+    studylist = []
+    basename = ""
+    if userid != "":
+        basename = 'user' + str(userid) + lang
+        checkbase = True
+        current_app.logger.debug(f'Using database {basename} for user')
+    else:
+        checkbase = False
+
     for word in text.split():
         if not re.match("^[0-9]",word):
             newword = word.strip(string.punctuation).casefold()
             if newword not in wordstotal:
                 wordstotal.append(newword)
-                wdata = get_word(lang,newword)['data']
-                if wdata:
-                    words_in_dict += 1
-                    wordset.append({
-                        'word': newword,
-                        'dictdata': wdata
-                        })
-                else:
-                    wordsnot.append(newword)
+                # Check if known or learning
+                searchWord = True
+                if checkbase:
+                    if wordIsKnown(newword,basename):
+                        wordsknown.append(newword)
+                        searchWord = False
+                        current_app.logger.debug(f'Word {newword} already marked as known')
+                if searchWord:
+                    wdata = get_word(lang,newword)['data']
+                    if wdata:
+                        wordset.append({
+                            'word': newword,
+                            'dictdata': wdata
+                            })
+                        studylist.append(newword)
+                        current_app.logger.debug(f'Word {newword} marked to be study')
+                    else:
+                        wordsnot.append(newword)
+                        current_app.logger.debug(f'Word {newword} marked as not found')
     return {
         'lang': lang,
         'wordstudy': sorted(wordset, key= lambda k: k['word']),
+        'wordstudylist': sorted(studylist),
         'wordsnot': sorted(wordsnot),
         'wordtotal': sorted(wordstotal),
         'wordsknown': sorted(wordsknown),
         'count_total': len(wordstotal),
-        'count_dict': words_in_dict
+        'count_dict': len(studylist),
+        'count_known': len(wordsknown),
+        'count_notf': len(wordsnot),
+        'check_db': checkbase,
+        'userdb': basename
     }
+
+def set_to_study(word,userdb):
+    outdb = mongo.db[userdb].find_one({'word':word})
+    if outdb:
+        if outdb['status'] != 'learning':
+            mongo.db[userdb].find_one_and_update({'word': word},{'$set':{'status': 'learning'}})
+    else:
+        flashcard = {
+            'days': 1,
+            'mult': 1.5,
+            'date': datetime.strftime(datetime.now(),"%d/%m/%Y %H:%M")
+        }
+        mongo.db[userdb].insert_one({'word': word,'status': 'learning','flashcard': flashcard})
+
+def set_to_known(word,userdb):
+    outdb = mongo.db[userdb].find_one({'word':word})
+    if outdb:
+        mongo.db[userdb].find_one_and_update({'word': word},{'$set':{'status': 'known','flashcard': ""}})
+    else:
+        mongo.db[userdb].insert_one({'word': word,'status': 'known'})
+
+#datetime.strptime(jogo["Data"],"%d/%m/%Y %H:%M")
+#datetime.strftime(datetime.now(),"%d/%m")
+
+@backend.route('/api/flashcard/<userdb>')
+@cache.memoize(600)
+def get_flashcard(userdb):
+    lang = 'en'
+    studynow = []
+    studyfuture = []
+    flashdb = [u for u in mongo.db[userdb].find({'status': 'learning'})]
+    for i in flashdb:
+        i.pop('_id')
+        wdate = datetime.strptime(i['flashcard']['date'],"%d/%m/%Y %H:%M")
+        limitdate = wdate + timedelta(days=i['flashcard']['days'])
+        if datetime.now() > limitdate:
+            i['dictdata'] = get_word(lang,i['word'])['data']
+            studynow.append(i)
+        else:
+            studyfuture.append(i)
+    return {
+        'studynow': studynow,
+        'studyfuture': studyfuture,
+        'count_now': len(studynow),
+        'count_fut': len(studyfuture)
+    }
+
+

@@ -7,7 +7,7 @@ from ..extentions.database import mongo
 from werkzeug.security import generate_password_hash
 from flask import Blueprint
 
-userCommands = Blueprint('userCommands',__name__)
+userCommands = Blueprint('user',__name__)
 
 @userCommands.cli.command("getUser")
 @click.argument("name")
@@ -18,27 +18,34 @@ def get_user(name):
 
 @userCommands.cli.command("addUser")
 @click.argument("username")
-def create_user(username):
-    userCollection = mongo.db.users
-    # Similar ao input, sem mostrar a digitação
+@click.argument("name")
+def create_user(username,name):
+    mongoconfig = mongo.db.settings.find_one_and_update({"config": "userid"},{'$inc': {'userid':1}})
+    if mongoconfig:
+        userid = mongoconfig['userid']
+    else:
+        mongo.db.settings.insert_one({'config':'userid','userid': 0})
+        userid = 0
 
-    userExists = userCollection.find_one({"username": username})
+    userExists = mongo.db.users.find_one({"username": username})
     if userExists:
-        print(f'Usuario {username} já existe')
+        print(f'User {username} exists')
     else:
         password = pwgen(10, symbols=False)
         user = {
             "username": username,
+            "name": name,
+            "uid": userid,
             "password": generate_password_hash(password),
-            "active": False,
+            "active": True,
             "passwordActive": False
         }
-        userCollection.insert(user)
+        outdb = mongo.db.users.insert_one(user)
         print('Usuário cadastrado com sucesso')
         print(f'Usuário: {username}')
         print(f'Senha temporária: {password}')
         print("Enviando email...")
-        #send_adduser_email(username,password)
+        # send_adduser_email(username,password)
 
 @userCommands.cli.command("resetPassword")
 @click.argument("username")
@@ -70,19 +77,10 @@ def list_users():
     for u in lista_users:
         if u["active"]:
             ativos += " " + u["name"]
-            if u.get("gokopa"):
-                gokopa += " " + u["name"]
-            if u.get("pago"):
-                pagos += " " + u["name"]
         else:
             inativos += " " + u["name"]
-        if u["sendEmail"]:
-            sendemail += " " + u["name"]
     print(f'Lista de users active ativos:{ativos}')
     print(f'Lista de users active inativos:{inativos}')
-    print(f'Lista de users gokopa:{gokopa}')
-    print(f'Lista de users pago:{pagos}')
-    print(f'Lista de users sendEmail:{sendemail}')
 
 @userCommands.cli.command("activeUser")
 @click.argument("user")
@@ -119,24 +117,6 @@ def delete_user(username):
             exit()
     else:
         print("Usuário não encontrado.")
-
-@userCommands.cli.command("initMoedas")
-@click.argument("nome")
-@click.argument("moedas")
-def init_moedas(nome,moedas):
-    moedaColl = mongo.db.moedas
-    moedaExists = moedaColl.find_one({"nome": nome})
-    if moedaExists:
-        print(f"Usuário {nome} já existe na base: {moedaExists}")
-    else:
-        novo_user = {
-            "nome": nome,
-            "saldo": int(moedas),
-            "bloqueado": 0,
-            "investido": 0
-        }
-        moedaColl.insert(novo_user)
-        print(f"Inserido user {nome} com {moedas} moedas na base.")
 
 
 

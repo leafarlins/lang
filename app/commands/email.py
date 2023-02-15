@@ -111,10 +111,10 @@ def test_email(recipient,subject):
 #@click.argument("test",required=False)
 def send_adduser_email(username,password,test=False):
     subject="Usuário criado"
-    corpo_html="<h1 style=\"text-align: center\">Gokopa - Criação de usuário</h1><p>Seu usuário foi criado. Acesse com a senha temporária.</p>"
-    corpo_html+="<p>Usuário: "+username+"</p>"
-    corpo_html+="<p>Senha: "+password+"</p><p>Bolão da Copa: <a href=\"https://copa.leafarlins.com\">copa.leafarlins.com</a></p><p>Gokopa do Mundo: <a href=\"https://gokopa.leafarlins.com\">gokopa.leafarlins.com</a></p>"
-    corpo_text = "Usuário: "+username+"\nSenha: "+password
+    corpo_html="<h1 style=\"text-align: center\">Langapp - New user</h1><p>Your user were created. Access the site with your temporary password.</p>"
+    corpo_html+="<p>User: "+username+"</p>"
+    corpo_html+="<p>Password: "+password+"</p><p>Langapp: <a href=\"https://langapp.leafarlins.com\">langapp.leafarlins.com</a></p>"
+    corpo_text = "User: "+username+"\Password: "+password
     BODY_HTML = """<html>
     <head></head>
     <body style=\"font-family: \"Trebuchet MS\", Arial, Helvetica, sans-serif;\">
@@ -132,9 +132,9 @@ def send_adduser_email(username,password,test=False):
 
 def send_reset_email(username,password,test=False):
     subject="Reset de senha"
-    corpo_html="<h1 style=\"text-align: center\">Gokopa - Reset de Senha</h1><p>Sua senha foi resetada. Acesse com a senha temporária.</p>"
+    corpo_html="<h1 style=\"text-align: center\">Reset de Senha</h1><p>Sua senha foi resetada. Acesse com a senha temporária.</p>"
     corpo_html+="<p>Usuário: "+username+"</p>"
-    corpo_html+="<p>Senha: "+password+"</p><p>Bolão da Copa: <a href=\"https://copa.leafarlins.com\">copa.leafarlins.com</a></p><p>Gokopa do Mundo: <a href=\"https://gokopa.leafarlins.com\">gokopa.leafarlins.com</a></p>"
+    corpo_html+="<p>Senha: "+password+"</p>"
     corpo_text = "Senha resetada.\nUsuário: "+username+"\nSenha: "+password
     BODY_HTML = """<html>
     <head></head>

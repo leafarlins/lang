@@ -1,32 +1,35 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="sectionj">
+<div class="container-sm">
+    <h2 class="text-center m-3">Login</h2>
 
-
-    <main class="form-signin">
+    <main class="form-signin text-center">
         <form action="/reset" method="POST">
-            <h2>Login</h2>
-
-            <p>Resete sua senha no sistema de bolão da Gokopa.</p>
-
-            {% with messages = get_flashed_messages() %}
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert alert-danger m-2" role="alert">
-                          {{ message }}
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
-
-            <label for="login" class="visually-hidden">Login</label>
-            <input type="text" name=usuario id="login" class="form-control m-2" placeholder="Login" value="{{ user }}" readonly>
-            <label for="senha" class="visually-hidden">Senha</label>
-            <input type="password" name=senha id="senha" class="form-control m-2" placeholder="Senha" required>
-            <label for="senha2" class="visually-hidden">Repita a senha</label>
-            <input type="password" name=senha2 id="senha2" class="form-control m-2" placeholder="Senha2" required>
-
-            <button class="w-100 btn btn-lg btn-primary m-2" type="submit">Redefinir senha</button>
+            <div class="row justify-content-md-center"><div class="col-12 col-sm-12 col-md-6 col-lg-4">
+                {% with messages = get_flashed_messages(with_categories=true) %} {% if messages %} {% for category, message in messages %}
+                <div class="alert alert-{{ category }} text-center mb-2" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %} {% endif %} {% endwith %}</div></div>
+            <div class="row mb-2 justify-content-center">
+                <div class="col-10 col-sm-9 col-md-6 text-center">
+                    <label for="login" class="visually-hidden mb-3">Login</label>
+                    <input type="text" name=usuario id="login" class="form-control m-3" placeholder="Login" required autofocus>
+                </div>
+            </div>
+            <div class="row mb-2 justify-content-center">
+                <div class="col-10 col-sm-9 col-md-6 text-center">
+                    <label for="senha" class="visually-hidden mb-3">Password</label>
+                    <input type="password" name=senha id="senha" class="form-control m-3" placeholder="Password" required>
+                </div>
+            </div>
+            <div class="row mb-2 justify-content-center">
+                <div class="col-10 col-sm-9 col-md-6 text-center">
+                    <label for="senha2" class="visually-hidden mb-3">Confirm password</label>
+                    <input type="password" name=senha2 id="senha2" class="form-control m-3" placeholder="Password" required>
+                </div>
+            </div>
+            <button class="w-40 btn btn-lg btn-primary m-3" type="submit">Login</button>
         </form>
     </main>
 

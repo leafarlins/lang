@@ -1,35 +1,30 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="row scoll-pane">
-
+<div class="container-md">
+    <h2 class="text-center m-3">Login</h2>
 
     <main class="form-signin text-center">
         <form action="/login" method="POST">
-            <h2>Login</h2>
 
             <div class="row justify-content-md-center"><div class="col-12 col-sm-12 col-md-6 col-lg-4">
                 {% with messages = get_flashed_messages(with_categories=true) %} {% if messages %} {% for category, message in messages %}
-                <div class="alert alert-{{ category }} text-center " role="alert">
+                <div class="alert alert-{{ category }} text-center mb-2" role="alert">
                     {{ message }}
                 </div>
             {% endfor %} {% endif %} {% endwith %}</div></div>
-            <div class="row mb-2">
-                <div class="col-sm-6 text-sm-end">
-                    <label for="login" class="visually-hidden">Login</label>
-                </div>
-                <div class="col-sm-6 text-sm-end">
+            <div class="row mb-2 justify-content-center">
+                <div class="col-10 col-sm-9 col-md-6 text-center">
+                    <label for="login" class="visually-hidden mb-3">Login</label>
                     <input type="text" name=usuario id="login" class="form-control m-3" placeholder="Login" required autofocus>
                 </div>
             </div>
-            <div class="row mb-2">
-                <div class="col-sm-6 text-sm-end">
-                    <label for="senha" class="visually-hidden m-3">Password</label>
-                </div>
-                <div class="col-sm-6 text-sm-end">
+            <div class="row mb-2 justify-content-center">
+                <div class="col-10 col-sm-9 col-md-6 text-center">
+                    <label for="senha" class="visually-hidden mb-3">Password</label>
                     <input type="password" name=senha id="senha" class="form-control m-3" placeholder="Senha" required>
                 </div>
             </div>
-            <button class="w-100 btn btn-lg btn-primary m-3" type="submit">Login</button>
+            <button class="w-40 btn btn-lg btn-primary m-3" type="submit">Login</button>
         </form>
     </main>
 
