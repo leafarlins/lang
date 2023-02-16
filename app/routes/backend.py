@@ -1,4 +1,5 @@
 from datetime import datetime, time, timedelta
+import json
 import re
 import string
 from flask import Blueprint, app, render_template, session, request, url_for, flash, jsonify, current_app
@@ -36,29 +37,29 @@ def get_word(lang,word):
     elif lang == 'fr':
         page = wtp.from_source(word)
         dictword = {
-            'etymology': page.get_etymology(),
+            'etymology': json.dumps(page.get_etymology()),
             'definitions': []
         }
-        speech = page.get_parts_of_speech()
-        for i in speech:
-            arrtext = []
-            arrex = []
-            for k1,t in speech[i].items():
-                print(t)
-                #tdic = dict(t)
-                arrtext.append('string')
-                if t[0].get('examples'):
-                    for k2,ex in t['examples'].items():
-                        #arrex.append(dict(ex)['example'])
-                        arrex.append('example')
-            item = {
-                'partOfSpeech': i,
-                'text': arrtext,
-                'translations': {},
-                'examples': arrex
-            }
-            dictword['definitions'].append(item)
-        data = [dictword]
+        data = page.get_parts_of_speech()
+    #     for i in speech:
+    #         arrtext = []
+    #         arrex = []
+    #         for k1,t in speech[i].items():
+    #             print(t)
+    #             #tdic = dict(t)
+    #             arrtext.append('string')
+    #             if t[0].get('examples'):
+    #                 for k2,ex in t['examples'].items():
+    #                     #arrex.append(dict(ex)['example'])
+    #                     arrex.append('example')
+    #         item = {
+    #             'partOfSpeech': i,
+    #             'text': arrtext,
+    #             'translations': {},
+    #             'examples': arrex
+    #         }
+    #         dictword['definitions'].append(item)
+    #     data = [dictword]
     else:
         data = ""
     return {
@@ -91,6 +92,7 @@ def get_text(lang,text,userid=""):
     if userid != "":
         basename = 'user' + str(userid) + lang
         checkbase = True
+        flashcard_list = get_flashcard(basename)['inflashcard']
         current_app.logger.debug(f'Using database {basename} for user')
     else:
         checkbase = False
@@ -98,8 +100,10 @@ def get_text(lang,text,userid=""):
     for word in text.split():
         if not re.match("^[0-9]",word):
             newword = word.strip(string.punctuation).casefold()
+            newword = newword.strip("/|\\<>!?.[]\{\}")
             if newword not in wordstotal:
                 wordstotal.append(newword)
+                inflashcard = False
                 # Check if known or learning
                 searchWord = True
                 if checkbase:
@@ -107,12 +111,15 @@ def get_text(lang,text,userid=""):
                         wordsknown.append(newword)
                         searchWord = False
                         current_app.logger.debug(f'Word {newword} already marked as known')
+                    elif newword in flashcard_list:
+                        inflashcard = True
                 if searchWord:
                     wdata = get_word(lang,newword)['data']
                     if wdata:
                         wordset.append({
                             'word': newword,
-                            'dictdata': wdata
+                            'dictdata': wdata,
+                            'inflashcard': inflashcard
                             })
                         studylist.append(newword)
                         current_app.logger.debug(f'Word {newword} marked to be study')
@@ -163,6 +170,7 @@ def get_flashcard(userdb):
     lang = 'en'
     studynow = []
     studyfuture = []
+    inflashcard = []
     flashdb = [u for u in mongo.db[userdb].find({'status': 'learning'})]
     for i in flashdb:
         i.pop('_id')
@@ -173,11 +181,13 @@ def get_flashcard(userdb):
             studynow.append(i)
         else:
             studyfuture.append(i)
+        inflashcard.append(i['word'])
     return {
         'studynow': studynow,
         'studyfuture': studyfuture,
         'count_now': len(studynow),
-        'count_fut': len(studyfuture)
+        'count_fut': len(studyfuture),
+        'inflashcard': inflashcard
     }
 
 

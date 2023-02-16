@@ -23,16 +23,17 @@ def home():
 def textstudy():
     if request.method == 'POST':
         textreceived = request.values.get("texto")
+        lang = 'en'
         if textreceived:
             if "username" in session:
                 userdb = mongo.db.users.find_one({'username': session["username"]})
                 if userdb:
-                    textobj = get_text('en',textreceived,userdb.get('uid'))
+                    textobj = get_text(lang,textreceived,userdb.get('uid'))
                 else:
                     flash(f'Error getting username database','danger')
                     return redirect(url_for('langapp.home'))
             else:
-                textobj = get_text('en',textreceived)
+                textobj = get_text(lang,textreceived)
             randomstore = pwgen(16, symbols=False)
             cache.set(randomstore,json.dumps(textobj),3600*48)
             resp = make_response(render_template("text.html",menu="Words",words=textobj,currentword=0))
@@ -70,7 +71,7 @@ def nextword():
                 if cachedata:
                     jsondata = json.loads(cachedata)
             if jsondata:
-                if action == 'study':
+                if action == 'study' and not jsondata['wordstudy'][int(currentword)]['inflashcard']:
                     set_to_study(jsondata['wordstudy'][int(currentword)]['word'],jsondata['userdb'])
                 elif action == 'know':
                     set_to_known(jsondata['wordstudy'][int(currentword)]['word'],jsondata['userdb'])

@@ -9,52 +9,14 @@
 
 <div class="container-lg">
 <h1 class="text-center m-3">Study {% if progress %}in progress{% else %}finished{% endif %}</h1>
-<div class="row mb-5">
-    <div class="col-12 col-sm-12 col-md-6 justify-content-sm-center">
-        <p>If you're logged in, you can mark words as known or save them to flashcard. Bellow, the number of each type of word in the given text.</p>
-        <div class="w-50 mb-3 mx-auto">
-            <table class="table table-hover">
-            <tbody>
-              <tr class="table-success">
-                <th scope="row">Known words</th>
-                <td>{{ words['count_known'] }}</td>
-              </tr>
-              <tr class="table-warning">
-                <th scope="row">To study</th>
-                <td>{{ words['count_dict'] }}</td>
-              </tr>
-              <tr class="table-dark">
-                <th scope="row">Not found</th>
-                <td>{{ words['count_notf'] }}</td>
-              </tr>
-              <tr class="table-primary">
-                <th scope="row">Total</th>
-                <td>{{ words['count_total'] }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-    </div>
-    <div class="col-12 col-sm-12 col-md-6">
-        <p class="text-center">Words status in text</p>
-        <div class="text-center"><span class="badge bg-success">Known</span><span class="badge bg-warning">To Study</span><span class="badge bg-dark">Not Found</span></div>
-        <div class="progress mb-3">
-            <div class="progress-bar bg-success" role="progressbar" style="width: {{ words['count_known'] * 100 / words['count_total'] }}%;" aria-valuenow="{{ words['count_known'] * 100 / words['count_total'] }}" aria-valuemin="0" aria-valuemax="100"></div>
-            <div class="progress-bar bg-warning" role="progressbar" style="width: {{ words['count_dict'] * 100 / words['count_total'] }}%;" aria-valuenow="{{ words['count_dict'] * 100 / words['count_total'] }}" aria-valuemin="0" aria-valuemax="100"></div>
-        </div>
-        <p class="text-center">Study progress: {{ currentword }}/{{ words['count_dict'] }}</p>
-        <div class="progress">
-            <div class="progress-bar" role="progressbar" style="width: {{ currentword * 100 / words['count_dict'] }}%;" aria-valuenow="{{ currentword * 100 / words['count_dict'] }}" aria-valuemin="0" aria-valuemax="100"></div>
-        </div>
-  
-    </div>
-</div>
+
 
 {% if progress %}
 <div class="row mb-5">
-    
-    <h3 class="text-center">Word</h3>
-    <h4 class="text-center">{{ dictdata['word'] }}</h4>
+    <h3 class="text-center">{{ dictdata['word'] }}{% if dictdata['inflashcard'] %} <span class="badge bg-warning fs-6 fst-normal">In flashcard</span>{% endif %}</h3>
+    <!-- <div class="text-center col-12">
+        <span class="badge bg-warning mb-2">In flashcard</span>
+    </div> -->
     <form method="post" action="{{ url_for('langapp.nextword') }}">
         <div class="row justify-content-sm-center">
             <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-3 text-center">
@@ -115,6 +77,47 @@
     </div>
 </div>
 {% endif %}
+
+<div class="row mb-5">
+    <div class="col-12 col-sm-12 col-md-6 justify-content-sm-center">
+        <p>If you're logged in, you can mark words as known or save them to flashcard. Bellow, the number of each type of word in the given text.</p>
+        <div class="w-50 mb-3 mx-auto">
+            <table class="table table-hover">
+            <tbody>
+              <tr class="table-success">
+                <th scope="row">Known words</th>
+                <td>{{ words['count_known'] }}</td>
+              </tr>
+              <tr class="table-warning">
+                <th scope="row">To study</th>
+                <td>{{ words['count_dict'] }}</td>
+              </tr>
+              <tr class="table-dark">
+                <th scope="row">Not found</th>
+                <td>{{ words['count_notf'] }}</td>
+              </tr>
+              <tr class="table-primary">
+                <th scope="row">Total</th>
+                <td>{{ words['count_total'] }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+    </div>
+    <div class="col-12 col-sm-12 col-md-6">
+        <p class="text-center">Words status in text</p>
+        <div class="text-center"><span class="badge bg-success">Known</span><span class="badge bg-warning">To Study</span><span class="badge bg-dark">Not Found</span></div>
+        <div class="progress mb-3">
+            <div class="progress-bar bg-success" role="progressbar" style="width: {{ words['count_known'] * 100 / words['count_total'] }}%;" aria-valuenow="{{ words['count_known'] * 100 / words['count_total'] }}" aria-valuemin="0" aria-valuemax="100"></div>
+            <div class="progress-bar bg-warning" role="progressbar" style="width: {{ words['count_dict'] * 100 / words['count_total'] }}%;" aria-valuenow="{{ words['count_dict'] * 100 / words['count_total'] }}" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <p class="text-center">Study progress: {{ currentword }}/{{ words['count_dict'] }}</p>
+        <div class="progress">
+            <div class="progress-bar" role="progressbar" style="width: {{ currentword * 100 / words['count_dict'] }}%;" aria-valuenow="{{ currentword * 100 / words['count_dict'] }}" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+  
+    </div>
+</div>
 
 <div class="row">
 <h3 class="text-center">Complete list of words</h3>
