@@ -2,12 +2,12 @@ from datetime import datetime, time, timedelta
 import json
 import re
 import string
+import requests
 from flask import Blueprint, app, render_template, session, request, url_for, flash, jsonify, current_app
 from pymongo import collection
 from ..extentions.database import mongo
 from ..cache import cache
 from wiktionaryparser import WiktionaryParser
-from wiktionnaireparser import WiktionnaireParser as wtp
 
 backend = Blueprint('backend',__name__)
 
@@ -35,31 +35,16 @@ def get_word(lang,word):
         if data and not data[0]['definitions']:
             data = ""
     elif lang == 'fr':
-        page = wtp.from_source(word)
-        dictword = {
-            'etymology': json.dumps(page.get_etymology()),
-            'definitions': []
-        }
-        data = page.get_parts_of_speech()
-    #     for i in speech:
-    #         arrtext = []
-    #         arrex = []
-    #         for k1,t in speech[i].items():
-    #             print(t)
-    #             #tdic = dict(t)
-    #             arrtext.append('string')
-    #             if t[0].get('examples'):
-    #                 for k2,ex in t['examples'].items():
-    #                     #arrex.append(dict(ex)['example'])
-    #                     arrex.append('example')
-    #         item = {
-    #             'partOfSpeech': i,
-    #             'text': arrtext,
-    #             'translations': {},
-    #             'examples': arrex
-    #         }
-    #         dictword['definitions'].append(item)
-    #     data = [dictword]
+        url = 'https://fr.wiktionary.org/w/api.php?action=query&titles='+word+'&format=json'
+        outurl = requests.get(url)
+        outj = json.loads(outurl.text)
+        print(outj['query']['pages'])
+        for i in outj['query']['pages']:
+            if int(i) > 0:
+                data = [{
+                    'definitions': [],
+                    'link': 'https://fr.wiktionary.org/wiki/'+word
+                }]
     else:
         data = ""
     return {

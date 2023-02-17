@@ -45,7 +45,7 @@ def create_user(username,name):
         print(f'Usuário: {username}')
         print(f'Senha temporária: {password}')
         print("Enviando email...")
-        # send_adduser_email(username,password)
+        send_adduser_email(username,password)
 
 @userCommands.cli.command("resetPassword")
 @click.argument("username")

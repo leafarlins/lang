@@ -17,13 +17,19 @@ langapp = Blueprint('langapp',__name__)
 
 @langapp.route('/')
 def home():
-    return render_template("home.html",menu="Home")
+    cook = request.cookies.get("preflang")
+    if cook not in ['en','fr']:
+        cook = 'en'
+    print(cook)
+    return render_template("home.html",menu="Home",preflang=cook)
 
 @langapp.route('/text', methods=['GET','POST'])
 def textstudy():
     if request.method == 'POST':
         textreceived = request.values.get("texto")
-        lang = 'en'
+        lang = request.values.get("btnradio")
+        if lang not in ['en','fr']:
+            lang = 'en'
         if textreceived:
             if "username" in session:
                 userdb = mongo.db.users.find_one({'username': session["username"]})

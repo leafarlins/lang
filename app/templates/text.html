@@ -73,6 +73,7 @@
         {% if d['pronunciations'] %}
         <p><b>Pronunciations: </b>{{ d['pronunciations']['text'] | join(' | ') }}</p>
         {% endif %}
+        <p class="text-center">Link: <a href="{{ d['link'] }}" target="_blank">wiktionary.org</a></p>
         {% endfor %}
     </div>
 </div>

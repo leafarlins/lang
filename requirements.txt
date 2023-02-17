@@ -41,4 +41,3 @@ wcwidth==0.2.6
 Werkzeug==2.2.2
 wikitextparser==0.45.2
 wiktionaryparser==0.0.97
-wiktionnaireparser==0.1
