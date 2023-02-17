@@ -45,6 +45,7 @@ def textstudy():
             resp = make_response(render_template("text.html",menu="Words",words=textobj,currentword=0))
             resp.set_cookie('textdata',randomstore)
             resp.set_cookie('currentw','0')
+            resp.set_cookie('preflang',lang)
             return resp
         else:
             flash(f'Null text received','danger')

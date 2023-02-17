@@ -26,27 +26,48 @@ backend = Blueprint('backend',__name__)
 #   'date': dateformat
 # }}
 
-@backend.route('/api/<lang>/<word>')
-@cache.memoize(600000)
-def get_word(lang,word):
-    if lang == 'en':
-        parser = WiktionaryParser()
-        data = parser.fetch(word)
-        if data and not data[0]['definitions']:
-            data = ""
-    elif lang == 'fr':
-        url = 'https://fr.wiktionary.org/w/api.php?action=query&titles='+word+'&format=json'
-        outurl = requests.get(url)
-        outj = json.loads(outurl.text)
-        print(outj['query']['pages'])
+def wordExists(lang,word):
+    current_app.logger.debug(f'Check if word {word} exists in {lang}')
+    url = 'https://'+lang+'.wiktionary.org/w/api.php?action=query&titles='+word+'&format=json'
+    outurl = requests.get(url)
+    outj = json.loads(outurl.text)
+    current_app.logger.debug(f'Response: {outurl.text}')
+    data = ""
+    if outj.get('query'):
         for i in outj['query']['pages']:
             if int(i) > 0:
                 data = [{
                     'definitions': [],
-                    'link': 'https://fr.wiktionary.org/wiki/'+word
+                    'link': 'https://'+lang+'.wiktionary.org/wiki/'+word
                 }]
+    # Check if the casefold word exists
+    if not data and word[0].isupper():
+        casefold = wordExists(lang,word.casefold())
+        if casefold['data']:
+            return casefold
+    return {
+        'word': word,
+        'data': data
+    }
+
+
+@backend.route('/api/<lang>/<word>')
+@cache.memoize(600000)
+def get_word(lang,word):
+    if lang in ['en','fr']:
+        outwe = wordExists(lang,word)
+        word = outwe['word']
+        data = outwe['data']   
     else:
         data = ""
+    if lang == 'en':
+        parser = WiktionaryParser()
+        dataparser = parser.fetch(word)
+        if dataparser and not dataparser[0]['definitions']:
+            data = outwe['data']
+        else:
+            data = dataparser
+            data[0]['link'] = outwe['data'][0].get('link')
     return {
         'lang': lang,
         'word': word,
@@ -81,12 +102,12 @@ def get_text(lang,text,userid=""):
         current_app.logger.debug(f'Using database {basename} for user')
     else:
         checkbase = False
-
-    for word in text.split():
+    word_list = re.split(" |'|’|\n",text)
+    for word in word_list:
         if not re.match("^[0-9]",word):
-            newword = word.strip(string.punctuation).casefold()
+            newword = word.strip(string.punctuation)
             newword = newword.strip("/|\\<>!?.[]\{\}")
-            if newword not in wordstotal:
+            if newword and newword not in wordstotal:
                 wordstotal.append(newword)
                 inflashcard = False
                 # Check if known or learning
@@ -99,11 +120,14 @@ def get_text(lang,text,userid=""):
                     elif newword in flashcard_list:
                         inflashcard = True
                 if searchWord:
-                    wdata = get_word(lang,newword)['data']
-                    if wdata:
+                    wdata = get_word(lang,newword)
+                    if wdata.get('data'):
+                        if newword != wdata['word']:
+                            current_app.logger.debug(f'Setting {newword} as {wdata["word"]}')
+                            newword = wdata["word"]
                         wordset.append({
                             'word': newword,
-                            'dictdata': wdata,
+                            'dictdata': wdata['data'],
                             'inflashcard': inflashcard
                             })
                         studylist.append(newword)

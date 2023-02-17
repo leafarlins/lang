@@ -11,6 +11,7 @@
     </div>
 {% endfor %} {% endif %} {% endwith %}</div></div>
 
+{% if not preflang %}{% set preflang = 'en' %}{% endif %}
 <form action="{{ url_for('langapp.textstudy') }}" method="post">
     <div class="row mb-3">
         <div class="text-center mb-3">
@@ -23,9 +24,9 @@
     <div class="row mb-3 justify-content-md-center"><div class="col-12 col-sm-6 col-md-5 col-lg-4 text-center">
         <p class="text-center">Language</p>
         <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
-            <input type="radio" class="btn-check" name="btnradio" value="en" id="btnradioen" autocomplete="off" checked="true">
+            <input type="radio" class="btn-check" name="btnradio" value="en" id="btnradioen" autocomplete="off" {% if preflang == 'en' %}checked="true"{% endif %}>
             <label class="btn btn-outline-primary" for="btnradioen">English</label>
-            <input type="radio" class="btn-check" name="btnradio" value="fr" id="btnradiofr" autocomplete="off">
+            <input type="radio" class="btn-check" name="btnradio" value="fr" id="btnradiofr" autocomplete="off" {% if preflang == 'fr' %}checked="true"{% endif %}>
             <label class="btn btn-outline-primary" for="btnradiofr">Français</label>
         </div>
     </div></div>
