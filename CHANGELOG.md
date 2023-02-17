@@ -4,7 +4,6 @@ All notable changes to this project will be documented in this file. Based on [K
 
 ## [unreleased]
 ## [0.1.1] - 2023-02-17
-## [0.1.1] - 2023-02-17
 ### Fixed
 - Small layout issues
 - French language (with link to wiki)
@@ -15,6 +14,5 @@ All notable changes to this project will be documented in this file. Based on [K
 - Initial app with words api and flashcard creation
 
 [unreleased]: https://github.com/leafarlins/gokopa/compare/v0.1.1...HEAD
-[0.1.1]: https://github.com/leafarlins/lang/compare/v0.1.1..0.1.1/
 [0.1.1]: https://github.com/leafarlins/lang/compare/v0.1.0..0.1.1/
 [0.1.0]: https://github.com/leafarlins/gokopa/releases/tag/v0.1.0
