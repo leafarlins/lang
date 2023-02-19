@@ -3,7 +3,11 @@
 All notable changes to this project will be documented in this file. Based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), with added/changed/deprecated/removed/fixed/security.
 
 ## [unreleased]
-## [0.1.2] - 2023-02-18
+## [0.1.2] - 2023-02-19
+
+### Changed
+- Cache in redis now
+
 ### Fixed
 - French words (without parse)
 - Small issues with words

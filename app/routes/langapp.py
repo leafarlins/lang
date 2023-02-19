@@ -96,6 +96,7 @@ def nextword():
     
     return redirect(url_for('langapp.home'))
 
+@cache.cached(timeout=3600)
 @langapp.route('/flashcard', methods=['GET','POST'])
 def flashcard():
     cards = []
@@ -104,10 +105,10 @@ def flashcard():
 
 
 
-    
 
 
 
+@cache.cached(timeout=3600)
 @langapp.route('/about')
 def about():
     return render_template("about.html",menu="About")

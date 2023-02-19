@@ -26,6 +26,7 @@ backend = Blueprint('backend',__name__)
 #   'date': dateformat
 # }}
 
+@cache.memoize(0)
 def wordExists(lang,word):
     current_app.logger.debug(f'Check if word {word} exists in {lang}')
     url = 'https://'+lang+'.wiktionary.org/w/api.php?action=query&titles='+word+'&format=json'
@@ -52,7 +53,7 @@ def wordExists(lang,word):
 
 
 @backend.route('/api/<lang>/<word>')
-@cache.memoize(600000)
+@cache.memoize(1500000)
 def get_word(lang,word):
     if lang in ['en','fr']:
         outwe = wordExists(lang,word)
@@ -63,9 +64,7 @@ def get_word(lang,word):
     if lang == 'en':
         parser = WiktionaryParser()
         dataparser = parser.fetch(word)
-        if dataparser and not dataparser[0]['definitions']:
-            data = outwe['data']
-        else:
+        if dataparser and dataparser[0]['definitions']:
             data = dataparser
             data[0]['link'] = outwe['data'][0].get('link')
     return {
@@ -74,6 +73,7 @@ def get_word(lang,word):
         'data': data
     }
 
+@cache.memoize(300)
 def wordIsKnown(word,userdb):
     checkCache = cache.get(word+userdb)
     if checkCache:
@@ -102,11 +102,11 @@ def get_text(lang,text,userid=""):
         current_app.logger.debug(f'Using database {basename} for user')
     else:
         checkbase = False
-    word_list = re.split(" |'|’|\n",text)
+    word_list = re.split(" |'|’|\n|\r|<|>|/",text)
     for word in word_list:
         if not re.match("^[0-9]",word):
             newword = word.strip(string.punctuation)
-            newword = newword.strip("/|\\<>!?.[]\{\}")
+            newword = newword.strip("/|\\<>!?.[]\{\}“”")
             if newword and newword not in wordstotal:
                 wordstotal.append(newword)
                 inflashcard = False
@@ -122,13 +122,26 @@ def get_text(lang,text,userid=""):
                 if searchWord:
                     wdata = get_word(lang,newword)
                     if wdata.get('data'):
+                        try:
+                            indexw = word_list.index(newword)
+                        except:
+                            current_app.logger.debug(f'Word {newword} not found in text, phrase empty')
+                            phrase = ""
+                        else:
+                            maxl = len(word_list)
+                            if indexw < 5:
+                                indexw = 5
+                            elif indexw > maxl-6:
+                                indexw = maxl-6
+                            phrase = ' '.join(word_list[indexw-5:indexw+6])
                         if newword != wdata['word']:
                             current_app.logger.debug(f'Setting {newword} as {wdata["word"]}')
                             newword = wdata["word"]
                         wordset.append({
                             'word': newword,
                             'dictdata': wdata['data'],
-                            'inflashcard': inflashcard
+                            'inflashcard': inflashcard,
+                            'phrase': phrase
                             })
                         studylist.append(newword)
                         current_app.logger.debug(f'Word {newword} marked to be study')

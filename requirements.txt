@@ -1,3 +1,4 @@
+async-timeout==4.0.2
 attrs==22.2.0
 beautifulsoup4==4.11.2
 boto3==1.26.66
@@ -14,6 +15,7 @@ Flask==2.2.2
 Flask-Cache==0.13.1
 Flask-Caching==2.0.2
 Flask-PyMongo==2.3.0
+gunicorn==20.1.0
 idna==2.10
 iniconfig==2.0.0
 itsdangerous==2.1.2
@@ -25,17 +27,21 @@ packaging==23.0
 pluggy==0.13.1
 pwgen==0.8.2.post0
 py==1.11.0
+PyJWT==2.4.0
 pymongo==4.3.3
 pyquery==1.4.1
 pytest==6.1.1
 python-dateutil==2.8.2
 python-dotenv==0.21.1
+pytz==2022.2.1
+redis==4.5.1
 regex==2022.10.31
 requests==2.24.0
 s3transfer==0.6.0
 six==1.16.0
 soupsieve==2.3.2.post1
 toml==0.10.2
+twilio==7.14.0
 urllib3==1.25.11
 wcwidth==0.2.6
 Werkzeug==2.2.2
