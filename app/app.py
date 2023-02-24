@@ -6,6 +6,7 @@ from .extentions import database
 from .commands.userCommands import userCommands
 from .commands.email import emailCommands
 from .cache import cache
+from .variables import *
 
 def create_app(config_object="app.settings"):
     app = Flask(__name__)

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% set progress = False %}
+{% if currentfcw < fc['count_now'] %}
+    {% set dictdata = fc['studynow'][currentfcw] %}
+    {% set progress = True %}
+{% endif %}
+
+<div class="container-lg">
+<h1 class="text-center m-3">Study {% if progress %}in progress{% else %}finished{% endif %}</h1>
+<div class="row justify-content-md-center"><div class="col-12 col-sm-12 col-md-6 col-lg-4">
+    {% with messages = get_flashed_messages(with_categories=true) %} {% if messages %} {% for category, message in messages %}
+    <div class="alert alert-{{ category }} text-center " role="alert">
+        {{ message }}
+    </div>
+{% endfor %} {% endif %} {% endwith %}</div></div>
+
+{% if progress %}
+<div class="row mb-5">
+    <h3 class="text-center">{{ dictdata['word'] }}</h3>
+    <!-- <div class="text-center col-12">
+        <span class="badge bg-warning mb-2">In flashcard</span>
+    </div> -->
+    <form method="post" action="{{ url_for('langapp.study_flashcard') }}">
+        <div class="row justify-content-sm-center">
+            <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-3 text-center">
+                <button type="submit" name="submit" value="know" class="btn btn-success {% if dictdata['flashcard']['days'] < 30 %}disabled{% endif %}" data-toggle="tooltip" data-placement="bottom" title="Mark word as a known word">Mark as known</button>
+            </div>
+            <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-3 text-center">
+                <button type="button" id="showm" class="btn btn-light" onclick="toggle('dictionary','showm')" data-toggle="tooltip" data-placement="bottom" title="Show dictionary data bellow">Show meaning</button>
+            </div>
+        </div><div class="row justify-content-sm-center">
+            <div class="col-4 col-sm-4 col-md-3 col-lg-2 mb-3 text-center">
+                <button type="submit" name="submit" value="easy" class="btn btn-info" data-placement="bottom">Easy</button>
+            </div>
+            <div class="col-4 col-sm-4 col-md-3 col-lg-2 mb-3 text-center">
+                <button type="submit" name="submit" value="medium" class="btn btn-warning" data-placement="bottom">Medium</button>
+            </div>
+            <div class="col-4 col-sm-4 col-md-3 col-lg-2 mb-3 text-center">
+                <button type="submit" name="submit" value="hard" class="btn btn-danger" data-placement="bottom">Hard</button>
+            </div>
+        </div>
+    </form>
+    {% include 'dictionary.html' %}
+</div>
+{% endif %}
+
+<div class="row mb-5 justify-content-sm-center">
+    <div class="col-12 col-sm-12 col-md-6 justify-content-sm-center">
+        <p class="text-center">Study progress: {{ currentfcw }}/{{ fc['count_now'] }}</p>
+        <div class="progress">
+            <div class="progress-bar" role="progressbar" style="width: {{ currentfcw * 100 / fc['count_now'] }}%;" aria-valuenow="{{ currentfcw * 100 / fc['count_now'] }}" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+  
+    </div>
+</div>
+
+<div class="row">
+<h3 class="text-center">Complete list of words in flashcard</h3>
+{% if fc['inflashcard'] %}
+<p class="text-warning"><b>Words: </b>{{ fc['inflashcard']|join(', ') }}</p>
+{% endif %}
+</div>
+
+{% endblock %}

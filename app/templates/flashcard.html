@@ -5,8 +5,75 @@
 
     <div class="text-center m-2">
         <h2>Flashcard</h2>
-        <p>This page is coming soon.</p>
+        {% if session['username'] %}
+        <p>Check the flashcard status bellow and choose one to study.</p>
+        {% else %}
+        <p>Log in to access your personal flashcards.</p>
+        {% endif %}
     </div>
+    <div class="row justify-content-md-center"><div class="col-12 col-sm-12 col-md-6 col-lg-4">
+        {% with messages = get_flashed_messages(with_categories=true) %} {% if messages %} {% for category, message in messages %}
+        <div class="alert alert-{{ category }} text-center " role="alert">
+            {{ message }}
+        </div>
+    {% endfor %} {% endif %} {% endwith %}</div></div>
+
+    {% if session['username'] %}
+    <div class="row justify-content-md-center">
+        <h4 class="text-center">My flashcard status</h4>
+        {% for fc in fclist['fclist'] %}
+        <div class="col-12 col-sm-12 col-md-12 col-lg-6 mb-3">
+            <div class="card border-primary m-3">
+                <div class="card-header">{{ fc['lang'] }}</div>
+                <div class="card-body">
+                <h4 class="card-title">Flashcard in {{ fc['langname'] }}</h4>
+                {% set total_wd = fc['count_fut'] + fc['count_now'] %}
+                {% set spancolor = [
+                    {
+                        'color': 'danger',
+                        'count': fc['counts_nd'][0],
+                        'text': 'now'
+                    },
+                    {
+                        'color': 'warning',
+                        'count': fc['counts_nd'][1],
+                        'text': 'in 2 days'
+                    },{
+                        'color': 'info',
+                        'count': fc['counts_nd'][2],
+                        'text': 'in 7 days'
+                    },{
+                        'color': 'light',
+                        'count': fc['counts_nd'][3],
+                        'text': 'in 30 days'
+                    }] %}
+                <p class="card-text">Total words: {{ total_wd }}</p>
+                <p class="card-text">Words set to study:</p>
+                <div class="text-center">
+                    {% for item in spancolor %}{% if item['count'] > 0 %}
+                    <span class="badge bg-{{ item['color'] }}">{{ item['count'] }} {{ item['text'] }}</span>
+                    {% endif %}{% endfor %}
+                </div>
+                <div class="progress mb-3">
+                    <div class="progress-bar bg-danger" role="progressbar" style="width: {{ fc['counts_nd'][0] * 100 / total_wd }}%;" aria-valuenow="{{ fc['counts_nd'][0] * 100 / total_wd }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    <div class="progress-bar bg-warning" role="progressbar" style="width: {{ fc['counts_nd'][1] * 100 / total_wd }}%;" aria-valuenow="{{ fc['counts_nd'][1] * 100 / total_wd }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    <div class="progress-bar bg-info" role="progressbar" style="width: {{ fc['counts_nd'][2] * 100 / total_wd }}%;" aria-valuenow="{{ fc['counts_nd'][2] * 100 / total_wd }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    <div class="progress-bar bg-light" role="progressbar" style="width: {{ fc['counts_nd'][3] * 100 / total_wd }}%;" aria-valuenow="{{ fc['counts_nd'][3] * 100 / total_wd }}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <form method="post" action="{{ url_for('langapp.study_flashcard') }}">
+                    <div class="text-center">
+                        <input type="hidden" name="database" value="{{ fc['dbname'] }}">
+                        <input type="hidden" name="fclang" value="{{ fc['lang'] }}">
+                        <button type="submit" name="submit" value="start" class="btn btn-outline-info{% if fc['count_now'] == 0 %} disabled{% endif %}" data-placement="bottom" title="Start studying this deck">Study Now</button>
+                    </div>
+                </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+    </div>
+    {% endif %}
   
 </div>
 

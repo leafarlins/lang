@@ -84,7 +84,7 @@
 
 <div class="row mb-5">
     <div class="col-12 col-sm-12 col-md-6 justify-content-sm-center">
-        <p>If you're logged in, you can mark words as known or save them to flashcard. Bellow, the number of each type of word in the given text.</p>
+        <p>{% if not session['username'] %}If you're logged in, you can mark words as known or save them to flashcard. {% endif %}Bellow, the number of each type of word in the given text.</p>
         <div class="w-50 mb-3 mx-auto">
             <table class="table table-hover">
             <tbody>

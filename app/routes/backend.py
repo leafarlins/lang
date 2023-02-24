@@ -8,6 +8,7 @@ from pymongo import collection
 from ..extentions.database import mongo
 from ..cache import cache
 from wiktionaryparser import WiktionaryParser
+from app.variables import *
 
 backend = Blueprint('backend',__name__)
 
@@ -51,11 +52,10 @@ def wordExists(lang,word):
         'data': data
     }
 
-
 @backend.route('/api/<lang>/<word>')
 @cache.memoize(1500000)
 def get_word(lang,word):
-    if lang in ['en','fr']:
+    if lang in SUPPORTED_LANGS:
         outwe = wordExists(lang,word)
         word = outwe['word']
         data = outwe['data']   
@@ -67,6 +67,7 @@ def get_word(lang,word):
         if dataparser and dataparser[0]['definitions']:
             data = dataparser
             data[0]['link'] = outwe['data'][0].get('link')
+            current_app.logger.debug(f'Dictionary of {word} parsed for {lang} language')
     return {
         'lang': lang,
         'word': word,
@@ -123,7 +124,7 @@ def get_text(lang,text,userid=""):
                     wdata = get_word(lang,newword)
                     if wdata.get('data'):
                         try:
-                            indexw = word_list.index(newword)
+                            indexw = word_list.index(word)
                         except:
                             current_app.logger.debug(f'Word {newword} not found in text, phrase empty')
                             phrase = ""
@@ -171,45 +172,91 @@ def set_to_study(word,userdb):
     else:
         flashcard = {
             'days': 1,
-            'mult': 1.5,
             'date': datetime.strftime(datetime.now(),"%d/%m/%Y %H:%M")
         }
         mongo.db[userdb].insert_one({'word': word,'status': 'learning','flashcard': flashcard})
 
 def set_to_known(word,userdb):
-    outdb = mongo.db[userdb].find_one({'word':word})
-    if outdb:
-        mongo.db[userdb].find_one_and_update({'word': word},{'$set':{'status': 'known','flashcard': ""}})
+    outdbv = mongo.db[userdb].find_one({'word':word})
+    if outdbv:
+        outdb = mongo.db[userdb].find_one_and_update({'word': word},{'$set':{'status': 'known','flashcard': ""}})
     else:
-        mongo.db[userdb].insert_one({'word': word,'status': 'known'})
+        outdb = mongo.db[userdb].insert_one({'word': word,'status': 'known'})
+    if outdb:
+        current_app.logger.debug(f'Word {word} in {userdb} updated as known')
+        return True
+    else:
+        current_app.logger.error(f'Error updating {word} in {userdb}')
+        return False
+
+def update_fc(word,days,userdb):
+    flashcard = {
+            'days': days,
+            'date': datetime.strftime(datetime.now(),"%d/%m/%Y %H:%M")
+    }
+    outdb = mongo.db[userdb].find_one_and_update({'word': word, 'status': 'learning'},{'$set': {'flashcard': flashcard}})
+    if outdb:
+        current_app.logger.debug(f'Word {word} in {userdb} updated with days={days}')
+        return True
+    else:
+        current_app.logger.error(f'Error searching for {word} in {userdb}')
+        return False
 
 #datetime.strptime(jogo["Data"],"%d/%m/%Y %H:%M")
 #datetime.strftime(datetime.now(),"%d/%m")
 
 @backend.route('/api/flashcard/<userdb>')
-@cache.memoize(600)
-def get_flashcard(userdb):
-    lang = 'en'
+@cache.memoize(60)
+def get_flashcard(userdb,lang='en'):
     studynow = []
     studyfuture = []
     inflashcard = []
+    count_nd = [0,0,0,0]
+    now = datetime.now()
     flashdb = [u for u in mongo.db[userdb].find({'status': 'learning'})]
     for i in flashdb:
         i.pop('_id')
         wdate = datetime.strptime(i['flashcard']['date'],"%d/%m/%Y %H:%M")
         limitdate = wdate + timedelta(days=i['flashcard']['days'])
-        if datetime.now() > limitdate:
+        if now > limitdate:
             i['dictdata'] = get_word(lang,i['word'])['data']
             studynow.append(i)
+            count_nd[0] += 1
         else:
             studyfuture.append(i)
+            diff = limitdate - now
+            if diff.days < 2:
+                count_nd[1] += 1
+            elif diff.days < 7:
+                count_nd[2] += 1
+            elif diff.days < 30:
+                count_nd[3] += 1
+
         inflashcard.append(i['word'])
     return {
+        'lang': lang,
+        'dbname': userdb,
+        'langname': LANGNAMES[lang],
         'studynow': studynow,
         'studyfuture': studyfuture,
         'count_now': len(studynow),
         'count_fut': len(studyfuture),
-        'inflashcard': inflashcard
+        'inflashcard': inflashcard,
+        'counts_nd': count_nd
     }
 
+@backend.route('/api/flashcard/user_fcs/<userid>')
+@cache.memoize(60)
+def get_user_flashcards(userid):
+
+    dblist = mongo.db.list_collection_names()
+    fclist = []
+    for lang in SUPPORTED_LANGS:
+        langdb = "user" + userid + lang
+        if langdb in dblist:
+            fclist.append(get_flashcard(langdb,lang))
+    return {
+        'fclist': fclist,
+        'userid': userid
+    }
 

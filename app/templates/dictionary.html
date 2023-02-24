@@ -1,0 +1,46 @@
+<div id="dictionary" style="display: none" class=".container-fluid">
+    <h4 class="text-center">Dictionary data</h4>
+    {% if dictdata['phrase'] %}
+    <p class="text-center "><em>...{{ dictdata['phrase'] }}...</em></p>
+    {% endif %}
+    {% for d in dictdata['dictdata'] %}
+    {% for def in d['definitions'] %}
+    <div class="row justify-content-sm-center">
+        <p class="text-warning text-center"><b>{{ dictdata['word'] }}</b> - {{ def['partOfSpeech'] }}</p>
+        <div class="col-12 col-sm-12 col-md-6 col-lg-4 mb-3">
+            <p class="text-center">Definitions:</p>
+            <div class="list-group">
+                {% for text in def['text'] %}
+                <a class="list-group-item">{{ text }}</a>
+                {% endfor %}
+            </div>
+        </div>
+        {% if def['examples'] %}
+        <div class="col-12 col-sm-12 col-md-6 col-lg-4 mb-3">
+            <p class="text-center">Examples:</p>
+            <div class="list-group">
+                {% for text in def['examples'] %}
+                <a class="list-group-item">{{ text }}</a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        {% if def['relatedWords'] %}
+        <div class="col-12 col-sm-12 col-md-6 col-lg-4 mb-3">
+            <p class="text-center">Related words:</p>
+            {% for r in def['relatedWords'] %}
+            <p><b>{{ r['relationshipType'] }}</b>: {{ r['words'] | join(', ') }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+    {% if d['etymology'] %}
+    <p><b>Etymology</b>: {{ d['etymology'] }}</p>
+    {% endif %}
+    {% if d['pronunciations'] %}
+    <p><b>Pronunciations: </b>{{ d['pronunciations']['text'] | join(' | ') }}</p>
+    {% endif %}
+    <p class="text-center">Link: <a href="{{ d['link'] }}" target="_blank">wiktionary.org</a></p>
+    {% endfor %}
+</div>
