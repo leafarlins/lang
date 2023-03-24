@@ -103,11 +103,11 @@ def get_text(lang,text,userid=""):
         current_app.logger.debug(f'Using database {basename} for user')
     else:
         checkbase = False
-    word_list = re.split(" |'|’|\n|\r|<|>|/",text)
+    word_list = re.split(" |'|’|\n|\r|<|>|/|—",text)
     for word in word_list:
-        if not re.match("^[0-9]",word):
-            newword = word.strip(string.punctuation)
-            newword = newword.strip("/|\\<>!?.[]\{\}“”")
+        newword = word.strip(string.punctuation)
+        if not re.match("^[0-9]",newword):
+            newword = newword.strip("/|\\<>!?.[]\{\}“”«»")
             if newword and newword not in wordstotal:
                 wordstotal.append(newword)
                 inflashcard = False
