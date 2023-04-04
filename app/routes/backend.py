@@ -83,8 +83,10 @@ def wordIsKnown(word,userdb):
         outdb = mongo.db[userdb].find_one({'word': word,'status': 'known'})
         if outdb:
             cache.set(word+userdb,True,600000)
+            current_app.logger.debug(f'Word {word} marked in cache as known')
             return True
         else:
+            current_app.logger.debug(f'Word {word} not found in database as known')
             return False
 
 @backend.route('/api/text/<lang>/<text>')

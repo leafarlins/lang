@@ -41,7 +41,7 @@ def textstudy():
             else:
                 textobj = get_text(lang,textreceived)
             randomstore = pwgen(16, symbols=False)
-            cache.set(randomstore,json.dumps(textobj),3600*48)
+            cache.set(randomstore,json.dumps(textobj),3600*120)
             resp = make_response(render_template("text.html",menu="Words",words=textobj,currentword=0))
             resp.set_cookie('textdata',randomstore)
             resp.set_cookie('currentw','0')

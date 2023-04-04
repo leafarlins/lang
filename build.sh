@@ -20,7 +20,7 @@ commit_tag() {
     git commit -m "release v$VERSAO"
     git tag v$VERSAO
     git push --tags
-    #git push origin master
+    git push origin main
 
 }
 

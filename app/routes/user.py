@@ -40,7 +40,7 @@ def login():
                 current_app.logger.info(f"User {validName} not active, login failed")
         else:
             flash("Login failed","danger")
-            current_app.logger.warn(f"User not found in database",'danger')
+            current_app.logger.warn(f"User not found in database")
 
     return render_template("usuarios/login.html",menu="Login")
     
