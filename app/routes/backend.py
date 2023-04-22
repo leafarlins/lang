@@ -138,17 +138,22 @@ def get_text(lang,text,userid=""):
                             elif indexw > maxl-6:
                                 indexw = maxl-6
                             phrase = ' '.join(word_list[indexw-5:indexw+6])
-                        if newword != wdata['word']:
-                            current_app.logger.debug(f'Setting {newword} as {wdata["word"]}')
-                            newword = wdata["word"]
-                        wordset.append({
-                            'word': newword,
-                            'dictdata': wdata['data'],
-                            'inflashcard': inflashcard,
-                            'phrase': phrase
-                            })
-                        studylist.append(newword)
-                        current_app.logger.debug(f'Word {newword} marked to be study')
+                        if wordIsKnown(wdata['word'],basename):
+                            wordsknown.append(newword)
+                            current_app.logger.debug(f'Word {newword} obtained already marked as known')
+                        else:
+                            if newword != wdata['word']:
+                                current_app.logger.debug(f'Setting {newword} as {wdata["word"]}')
+                                newword = wdata["word"]
+                            if newword not in studylist:
+                                wordset.append({
+                                    'word': newword,
+                                    'dictdata': wdata['data'],
+                                    'inflashcard': inflashcard,
+                                    'phrase': phrase
+                                    })
+                                studylist.append(newword)
+                                current_app.logger.debug(f'Word {newword} marked to be study')
                     else:
                         wordsnot.append(newword)
                         current_app.logger.debug(f'Word {newword} marked as not found')
