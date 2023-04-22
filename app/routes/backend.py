@@ -74,10 +74,11 @@ def get_word(lang,word):
         'data': data
     }
 
-@cache.memoize(300)
+@cache.memoize(30)
 def wordIsKnown(word,userdb):
     checkCache = cache.get(word+userdb)
     if checkCache:
+        current_app.logger.debug(f'Word {word} was marked in cache as known')
         return True
     else:
         outdb = mongo.db[userdb].find_one({'word': word,'status': 'known'})
@@ -165,6 +166,13 @@ def get_text(lang,text,userid=""):
         'check_db': checkbase,
         'userdb': basename
     }
+
+def set_last_phrase(word,phrase,userdb):
+    outdb = mongo.db[userdb].find_one_and_update({'word': word},{'$set': {'phrase': phrase}})
+    if outdb:
+        current_app.logger.debug(f'New phrase inserted for word {word}')
+    else:
+        current_app.logger.error(f'Error inserting new phrase for word {word}')
 
 def set_to_study(word,userdb):
     outdb = mongo.db[userdb].find_one({'word':word})

@@ -4,7 +4,7 @@ import pymongo
 from werkzeug.utils import redirect
 from werkzeug.security import check_password_hash
 from pwgen import pwgen
-from app.routes.backend import get_text, get_user_flashcards, set_to_known, set_to_study, get_flashcard, update_fc
+from app.routes.backend import get_text, get_user_flashcards, set_last_phrase, set_to_known, set_to_study, get_flashcard, update_fc
 from ..extentions.database import mongo
 from ..cache import cache
 from app.variables import *
@@ -78,8 +78,10 @@ def nextword():
                 if cachedata:
                     jsondata = json.loads(cachedata)
             if jsondata:
-                if action == 'study' and not jsondata['wordstudy'][int(currentword)]['inflashcard']:
-                    set_to_study(jsondata['wordstudy'][int(currentword)]['word'],jsondata['userdb'])
+                if action == 'study':
+                    if not jsondata['wordstudy'][int(currentword)]['inflashcard']:
+                        set_to_study(jsondata['wordstudy'][int(currentword)]['word'],jsondata['userdb'])
+                        set_last_phrase(jsondata['wordstudy'][int(currentword)]['word'],jsondata['wordstudy'][int(currentword)]['phrase'],jsondata['userdb'])
                 elif action == 'know':
                     set_to_known(jsondata['wordstudy'][int(currentword)]['word'],jsondata['userdb'])
                 resp = make_response(render_template("text.html",menu="Words",words=jsondata,currentword=nextw))

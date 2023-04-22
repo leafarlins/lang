@@ -54,12 +54,14 @@
                     <span class="badge bg-{{ item['color'] }}">{{ item['count'] }} {{ item['text'] }}</span>
                     {% endif %}{% endfor %}
                 </div>
+                {% if total_wd > 0 %}
                 <div class="progress mb-3">
                     <div class="progress-bar bg-danger" role="progressbar" style="width: {{ fc['counts_nd'][0] * 100 / total_wd }}%;" aria-valuenow="{{ fc['counts_nd'][0] * 100 / total_wd }}" aria-valuemin="0" aria-valuemax="100"></div>
                     <div class="progress-bar bg-warning" role="progressbar" style="width: {{ fc['counts_nd'][1] * 100 / total_wd }}%;" aria-valuenow="{{ fc['counts_nd'][1] * 100 / total_wd }}" aria-valuemin="0" aria-valuemax="100"></div>
                     <div class="progress-bar bg-info" role="progressbar" style="width: {{ fc['counts_nd'][2] * 100 / total_wd }}%;" aria-valuenow="{{ fc['counts_nd'][2] * 100 / total_wd }}" aria-valuemin="0" aria-valuemax="100"></div>
                     <div class="progress-bar bg-light" role="progressbar" style="width: {{ fc['counts_nd'][3] * 100 / total_wd }}%;" aria-valuenow="{{ fc['counts_nd'][3] * 100 / total_wd }}" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
+                {% endif %}
                 <form method="post" action="{{ url_for('langapp.study_flashcard') }}">
                     <div class="text-center">
                         <input type="hidden" name="database" value="{{ fc['dbname'] }}">
