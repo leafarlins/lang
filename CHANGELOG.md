@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file. Based on [K
 
 ## [unreleased]
 ## [0.2.1] - 2023-04-22
+## [0.2.1] - 2023-04-22
 
 ### Fixed
 - Erros from division by 0
@@ -34,6 +35,7 @@ All notable changes to this project will be documented in this file. Based on [K
 - Initial app with words api and flashcard creation
 
 [unreleased]: https://github.com/leafarlins/gokopa/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/leafarlins/lang/compare/v0.2.1..0.2.1/
 [0.2.1]: https://github.com/leafarlins/lang/compare/v0.2.0..0.2.1/
 [0.2.0]: https://github.com/leafarlins/lang/compare/v0.1.2..0.2.0/
 [0.1.2]: https://github.com/leafarlins/lang/compare/v0.1.1..0.1.2/
