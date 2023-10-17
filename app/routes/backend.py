@@ -106,7 +106,7 @@ def get_text(lang,text,userid=""):
         current_app.logger.debug(f'Using database {basename} for user')
     else:
         checkbase = False
-    word_list = re.split(" |'|’|\n|\r|<|>|/|—",text)
+    word_list = re.split(" |'|’|\n|\r|<|>|/|—|…",text)
     for word in word_list:
         newword = word.strip(string.punctuation)
         if not re.match("^[0-9]",newword):
@@ -133,11 +133,11 @@ def get_text(lang,text,userid=""):
                             phrase = ""
                         else:
                             maxl = len(word_list)
-                            if indexw < 5:
-                                indexw = 5
-                            elif indexw > maxl-6:
-                                indexw = maxl-6
-                            phrase = ' '.join(word_list[indexw-5:indexw+6])
+                            if indexw < 10:
+                                indexw = 10
+                            elif indexw > maxl-11:
+                                indexw = maxl-11
+                            phrase = ' '.join(word_list[indexw-10:indexw+11])
                         if wordIsKnown(wdata['word'],basename):
                             wordsknown.append(newword)
                             current_app.logger.debug(f'Word {newword} obtained already marked as known')

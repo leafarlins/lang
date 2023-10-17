@@ -1,8 +1,9 @@
+{% if dictdata['phrase'] %}
+<p class="text-center "><em>...{{ dictdata['phrase'] }}...</em></p>
+{% endif %}
+
 <div id="dictionary" style="display: none" class=".container-fluid">
     <h4 class="text-center">Dictionary data</h4>
-    {% if dictdata['phrase'] %}
-    <p class="text-center "><em>...{{ dictdata['phrase'] }}...</em></p>
-    {% endif %}
     {% for d in dictdata['dictdata'] %}
     {% for def in d['definitions'] %}
     <div class="row justify-content-sm-center">
