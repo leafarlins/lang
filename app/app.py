@@ -7,6 +7,7 @@ from .commands.userCommands import userCommands
 from .commands.email import emailCommands
 from .cache import cache
 from .variables import *
+import os
 
 def create_app(config_object="app.settings"):
     app = Flask(__name__)
@@ -16,9 +17,9 @@ def create_app(config_object="app.settings"):
     app.register_blueprint(backend)
     app.register_blueprint(userCommands)
     app.register_blueprint(emailCommands)
-    LOGLEVEL = app.config.get('LOGLEVEL')
+
+    LOGLEVEL = os.environ.get('LOGLEVEL', 'INFO').upper()
     app.logger.setLevel(LOGLEVEL)
-    
     
     cache.init_app(app)
     database.init_app(app)

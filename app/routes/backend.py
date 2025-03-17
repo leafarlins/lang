@@ -7,10 +7,26 @@ from flask import Blueprint, app, render_template, session, request, url_for, fl
 from pymongo import collection
 from ..extentions.database import mongo
 from ..cache import cache
-from wiktionaryparser import WiktionaryParser
+#from wiktionaryparser import WiktionaryParser
 from app.variables import *
+from dictionary import Dictionary
+import nltk
+from nltk.stem import WordNetLemmatizer
+from nltk.tokenize import word_tokenize
+from nltk.corpus import wordnet
 
 backend = Blueprint('backend',__name__)
+
+# Python english dictionary
+en_dictionary = Dictionary()
+
+# NLTK for normalization
+nltk.download('punkt')
+nltk.download('averaged_perceptron_tagger')
+nltk.download('wordnet')
+nltk.download('averaged_perceptron_tagger_eng')
+nltk.download('punkt_tab')
+lemmatizer = WordNetLemmatizer()
 
 #@cache.memoize(300)
 
@@ -26,6 +42,10 @@ backend = Blueprint('backend',__name__)
 #   'mult': 1.5
 #   'date': dateformat
 # }}
+
+# Rate limits
+REQUESTS_PER_MINUTE = 60
+REQUESTS_PER_HOUR = 1000
 
 @cache.memoize(0)
 def wordExists(lang,word):
@@ -53,26 +73,70 @@ def wordExists(lang,word):
     }
 
 @backend.route('/api/<lang>/<word>')
-@cache.memoize(1500000)
-def get_word(lang,word):
-    if lang in SUPPORTED_LANGS:
-        outwe = wordExists(lang,word)
-        word = outwe['word']
-        data = outwe['data']   
+def get_word_api(lang,word):
+    """
+    API route to look up a word with rate limiting.
+    """
+    checkCache = cache.get("apiperminute")
+    if checkCache:
+        if checkCache > REQUESTS_PER_MINUTE:
+            current_app.logger.info(f'Too many requests per minute in api')
+            return jsonify({"error": "Too many requests. Please try again in a minute."}), 429
+        else:
+            cache.set("apiperminute",1+checkCache,60)
     else:
-        data = ""
-    if lang == 'en':
-        parser = WiktionaryParser()
-        dataparser = parser.fetch(word)
-        if dataparser and dataparser[0]['definitions']:
-            data = dataparser
-            data[0]['link'] = outwe['data'][0].get('link')
-            current_app.logger.debug(f'Dictionary of {word} parsed for {lang} language')
+        cache.set("apiperminute",1,60)
+    checkCache = cache.get("apiperhour")
+    if checkCache:
+        if checkCache > REQUESTS_PER_HOUR:
+            current_app.logger.info(f'Too many requests per hour in api')
+            return jsonify({"error": "Too many requests. Please try again in an hour."}), 429
+        else:
+            cache.set("apiperhour",1+checkCache,3600)
+    else:
+        cache.set("apiperhour",1,3600)
+
+    data = get_word(lang, word)
+    current_app.logger.info(f'Request of word {word} via api')
+    return jsonify(data)
+
+@cache.memoize(604800)
+def get_word(lang,word):
+    if lang == "en":
+        data = en_dictionary.lookup(word.lower())
+    else:
+        data = {"error": f"Language {lang} not available."}
     return {
         'lang': lang,
         'word': word,
         'data': data
     }
+
+def normalize_word(word):
+    """
+    Normalize a word by converting it to its singular form (for nouns) or infinitive form (for verbs).
+    """
+    tokens = word_tokenize(word)
+    if not tokens:
+        return word
+
+    pos_tag = nltk.pos_tag(tokens)[0][1]
+    if pos_tag.startswith('J'):
+        ptag = wordnet.ADJ
+    elif pos_tag.startswith('V'):
+        ptag = wordnet.VERB
+    elif pos_tag.startswith('N'):
+        ptag = wordnet.NOUN
+    elif pos_tag.startswith('R'):
+        ptag = wordnet.ADV
+    else:
+        ptag = None
+    if ptag:
+        normalized_word = lemmatizer.lemmatize(tokens[0], ptag)
+    else:
+        normalized_word = lemmatizer.lemmatize(tokens[0])
+
+    return normalized_word
 
 @cache.memoize(30)
 def wordIsKnown(word,userdb):
@@ -110,11 +174,28 @@ def get_text(lang,text,userid=""):
     for word in word_list:
         newword = word.strip(string.punctuation)
         if not re.match("^[0-9]",newword):
-            newword = newword.strip("/|\\<>!?.[]\{\}“”«»")
+            newword = newword.strip("/|\\<>!?.[]{}“”«»").lower()
             if newword and newword not in wordstotal:
+
+                # Add original word or normalized one
                 wordstotal.append(newword)
-                inflashcard = False
+                wdata = get_word(lang,newword)
+                if wdata.get('data'):
+                    dataPresent = True
+                else:
+                    current_app.logger.debug(f'Word {newword} without data, searching normalized word')
+                    norm_newword = normalize_word(newword)
+                    nwdata = get_word(lang,norm_newword)
+                    if nwdata.get('data'):
+                        dataPresent = True
+                        current_app.logger.debug(f'Considering normalized word {norm_newword} for word {newword}')
+                        newword = norm_newword
+                        wdata = nwdata
+                    else:
+                        dataPresent = False
+
                 # Check if known or learning
+                inflashcard = False
                 searchWord = True
                 if checkbase:
                     if wordIsKnown(newword,basename):
@@ -123,9 +204,9 @@ def get_text(lang,text,userid=""):
                         current_app.logger.debug(f'Word {newword} already marked as known')
                     elif newword in flashcard_list:
                         inflashcard = True
+
                 if searchWord:
-                    wdata = get_word(lang,newword)
-                    if wdata.get('data'):
+                    if dataPresent:
                         try:
                             indexw = word_list.index(word)
                         except:
@@ -154,6 +235,8 @@ def get_text(lang,text,userid=""):
                                     })
                                 studylist.append(newword)
                                 current_app.logger.debug(f'Word {newword} marked to be study')
+
+                                current_app.logger.debug(f'Dictdata {newword}: {wdata["data"]}')
                     else:
                         wordsnot.append(newword)
                         current_app.logger.debug(f'Word {newword} marked as not found')

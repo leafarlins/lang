@@ -4,7 +4,7 @@ LANGNAMES = {
     'es': 'Español'
 }
 
-SUPPORTED_LANGS = ['en','fr','es']
+SUPPORTED_LANGS = ['en']
 
 MULT_FC = {
     'easy': 3,
