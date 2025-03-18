@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file. Based on [K
 
 ### [unreleased]
 ## [0.3.1] - 2025-03-17
+## [0.3.1] - 2025-03-17
 * Fixed: function normalize_word
 
 ### [0.3.0] - 2025-03-16
@@ -45,6 +46,7 @@ All notable changes to this project will be documented in this file. Based on [K
 - Initial app with words api and flashcard creation
 
 [unreleased]: https://github.com/leafarlins/gokopa/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/leafarlins/lang/compare/v0.3.1..0.3.1/
 [0.3.1]: https://github.com/leafarlins/lang/compare/v0.3.0..0.3.1/
 [0.3.0]: https://github.com/leafarlins/lang/compare/v0.2.2..0.3.0/
 [0.2.2]: https://github.com/leafarlins/lang/compare/v0.2.1..0.2.2/
