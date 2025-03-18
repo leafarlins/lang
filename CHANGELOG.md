@@ -3,6 +3,7 @@
 All notable changes to this project will be documented in this file. Based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), with added/changed/deprecated/removed/fixed/security.
 
 ### [unreleased]
+## [0.3.1] - 2025-03-17
 * Fixed: function normalize_word
 
 ### [0.3.0] - 2025-03-16

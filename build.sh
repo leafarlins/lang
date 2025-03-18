@@ -7,7 +7,7 @@ edit_changelog() {
 
     sed -i "s/$LASTV\.\./v$VERSAO\.\./" CHANGELOG.md
     sed -i "/^\[unreleased/a [${VERSAO/v/}]: https://github.com/leafarlins/lang/compare/$LASTV..$VERSAO/" CHANGELOG.md
-    sed -i "/^## \[unreleased/a ## \[$VERSAO\] - $HOJE" CHANGELOG.md
+    sed -i "/^### \[unreleased/a ## \[$VERSAO\] - $HOJE" CHANGELOG.md
     #sed -n '/## \[unreleased/,/^## /p' CHANGELOG.md | sed '/^## \[/d' > /tmp/tagnotes
 
     sed -i "s/langapp v.*/langapp v$VERSAO/" app/templates/about.html
@@ -26,10 +26,10 @@ commit_tag() {
 
 docker_build() {
     echo "Construindo container"
-    docker build -t leafarlins/lang:v$VERSAO .
+    docker build -t leafarlins/lang:v$VERSAO . || exit 1
     docker build -t leafarlins/lang:latest .
-    docker push leafarlins/lang:v$VERSAO
-    docker push leafarlins/lang:latest
+    docker push leafarlins/lang:v$VERSAO || exit 1
+    docker push leafarlins/lang:latest || exit 1
 }
 
 VERSAO=$1
