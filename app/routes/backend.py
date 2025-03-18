@@ -1,32 +1,19 @@
-from datetime import datetime, time, timedelta
+from datetime import datetime, timedelta
 import json
 import re
 import string
 import requests
-from flask import Blueprint, app, render_template, session, request, url_for, flash, jsonify, current_app
-from pymongo import collection
+from flask import Blueprint, jsonify, current_app
+#from pymongo import collection
 from ..extentions.database import mongo
 from ..cache import cache
-#from wiktionaryparser import WiktionaryParser
 from app.variables import *
 from dictionary import Dictionary
-import nltk
-from nltk.stem import WordNetLemmatizer
-from nltk.tokenize import word_tokenize
-from nltk.corpus import wordnet
 
 backend = Blueprint('backend',__name__)
 
 # Python english dictionary
 en_dictionary = Dictionary()
-
-# NLTK for normalization
-nltk.download('punkt')
-nltk.download('averaged_perceptron_tagger')
-nltk.download('wordnet')
-nltk.download('averaged_perceptron_tagger_eng')
-nltk.download('punkt_tab')
-lemmatizer = WordNetLemmatizer()
 
 #@cache.memoize(300)
 
@@ -103,6 +90,7 @@ def get_word_api(lang,word):
 @cache.memoize(604800)
 def get_word(lang,word):
     if lang == "en":
+        current_app.logger.debug(f'Searching word {word} in module dictionary_en')
         data = en_dictionary.lookup(word.lower())
     else:
         data = {"error": f"Language {lang} not available."}
@@ -116,27 +104,33 @@ def normalize_word(word):
     """
     Normalize a word by converting it to its singular form (for nouns) or infinitive form (for verbs).
     """
-    tokens = word_tokenize(word)
-    if not tokens:
-        return word
-
-    pos_tag = nltk.pos_tag(tokens)[0][1]
-    if pos_tag.startswith('J'):
-        ptag = wordnet.ADJ
-    elif pos_tag.startswith('V'):
-        ptag = wordnet.VERB
-    elif pos_tag.startswith('N'):
-        ptag = wordnet.NOUN
-    elif pos_tag.startswith('R'):
-        ptag = wordnet.ADV
-    else:
-        ptag = None
-    if ptag:
-        normalized_word = lemmatizer.lemmatize(tokens[0], ptag)
-    else:
-        normalized_word = lemmatizer.lemmatize(tokens[0])
-
-    return normalized_word
+    # Handle common plural endings
+    if word.endswith("ies"):
+        return word[:-3] + "y"  # "cities" → "city"
+    elif word.endswith("es"):
+        return word[:-2]  # "boxes" → "box"
+    elif word.endswith("s"):
+        return word[:-1]  # "cats" → "cat"
+    # Handle common conjugation
+    elif word.endswith("ed"):
+        infinitive_word = word[:-2]
+        current_app.logger.debug(f'Searching word {infinitive_word} in module dictionary_en')
+        if en_dictionary.lookup(infinitive_word):
+            return infinitive_word # looked
+        if len(infinitive_word) > 2 and infinitive_word[-1] == infinitive_word[-2]:
+            infinitive_word = word[:-3]
+            current_app.logger.debug(f'Searching word {infinitive_word} in module dictionary_en')
+            if en_dictionary.lookup(infinitive_word):
+                return infinitive_word # wrapped
+        infinitive_word = word[:-1]
+        current_app.logger.debug(f'Searching word {infinitive_word} in module dictionary_en')
+        if en_dictionary.lookup(infinitive_word):
+            return infinitive_word # placed
+    elif word.endswith("ing"):
+        return word[:-3]
+    
+    current_app.logger.debug(f'Word could not be normalized, returning {word}')
+    return word  # No change
 
 @cache.memoize(30)
 def wordIsKnown(word,userdb):
@@ -183,8 +177,8 @@ def get_text(lang,text,userid=""):
                 if wdata.get('data'):
                     dataPresent = True
                 else:
-                    current_app.logger.debug(f'Word {newword} without data, searching normalized word')
                     norm_newword = normalize_word(newword)
+                    current_app.logger.debug(f'Word {newword} without data, searching normalized word {norm_newword}')
                     nwdata = get_word(lang,norm_newword)
                     if nwdata.get('data'):
                         dataPresent = True

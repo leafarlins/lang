@@ -5,7 +5,7 @@ A way for studying language vocabulary and automatically creating flashcards.
 ## Packages used
 
 ```
-Flask Flask-Cache Flask-PyMongo bs4 redis os boto3 python-dotenv flask_caching requests pwgen 
+Flask Flask-Cache Flask-PyMongo bs4 redis boto3 python-dotenv flask_caching requests pwgen nltk dictionary_en_gcide
 ```
 
 ## Dictionary data
